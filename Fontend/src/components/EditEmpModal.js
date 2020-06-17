@@ -6,7 +6,7 @@ import IconButton from '@material-ui/core/IconButton';
 export class EditEmpModal extends React.Component {
   constructor(props) {
     super(props);
-    this.state ={deps:[], snackbaropen: false,snackbarmsg:''};
+    this.state ={deps:[], snackbaropen: false,snackbarmsg:'',selectedType : 'A'};
     this.handleSubmit= this.handleSubmit.bind(this);
   }
   componentDidMount(){
@@ -44,6 +44,12 @@ export class EditEmpModal extends React.Component {
       {
         //alert(result);
         this.setState({snackbaropen:true, snackbarmsg: result})
+        fetch('/getData01')
+    .then(response => response.json())
+    .then(data => {
+      this.setState({deps:data});
+      
+    });
       },
       (error)=>{
       //  alert('Failed')
@@ -51,9 +57,12 @@ export class EditEmpModal extends React.Component {
       }
 
     )
+
+    this.props.callback("OK")
   }
 
   render() {
+    const filterDepType = this.state.deps.filter(e => e.type === this.state.selectedType);
     return (
           <div className="container">
           <Snackbar
@@ -115,7 +124,9 @@ export class EditEmpModal extends React.Component {
 
         <Form.Group controlId="type">
         <Form.Label>Department</Form.Label>
-        <Form.Control as="select"   defaultValue={this.props.typeroom}>
+        <Form.Control as="select"   defaultValue={this.props.typeroom}
+         onChange={(e) => this.setState({selectedType : e.target.value})}
+        >
         {this.state.deps.map(dep=>
         <option key={dep.type}>{dep.type}</option>
         )}
@@ -124,12 +135,12 @@ export class EditEmpModal extends React.Component {
 
         <Form.Group controlId="price">
         <Form.Label>MailID</Form.Label>
-        <Form.Control
-            type="text"
-            name="price"
-            required
-              defaultValue={this.props.price}
-            placeholder="MailID"/>
+        <Form.Control as="select" value={this.state.selectedType}
+        defaultValue={this.props.price}>
+        {filterDepType.map(dep=>
+          <option key={dep.type}>{dep.price}</option>
+        )}
+        </Form.Control>
         </Form.Group>
 
         <Form.Group controlId="note">

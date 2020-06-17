@@ -2,13 +2,24 @@ import React, { Component } from 'react';
 import {Table} from 'react-bootstrap';
 import{Button, ButtonToolbar} from 'react-bootstrap';
 import{AddOrderModal} from './AddOrderModal';
-import{EditEmpModal} from './EditEmpModal';
+import{EditOrderModal} from './EditOrderModal';
+import{SolveOrderModal} from './SolveOrderModal';
 import axios from 'axios';
 
 export class Order extends Component {
     constructor(props) {
         super(props);
-        this.state = {emps:null, addModalShow: false, editModalShow: false,isSignal : false}
+        this.state = {orders:null, addModalShow: false, editModalShow: false,isSignal : false, showSolveOrder: false
+          // id:'',
+          // typeclient:'',
+          // name:'',
+          // cmnd:'',
+          // address:'',
+          // dateagent:'',
+          // roomnum:'',
+          // datesolve:''
+        
+        }
       }
     
       componentDidMount() {
@@ -17,12 +28,23 @@ export class Order extends Component {
       }
     
       refreshList =() => {
-        axios.get('/getData01')
+        axios.get('/getDataOrder')
           .then((res) => res.data)
           .then((res) => {
-            this.setState({ emps: res });
+            this.setState({ orders: res });
           })
       }
+
+      // pushPropertyToSolvePage = (ord) => {
+       
+      //   console.log("id",ord.ID)
+      
+      //   this.setState({showSolveOrder:true,
+      //     id:ord.ID, typeclient:ord.TypeClient,
+      //     name:ord.Name,cmnd:ord.CMND,address:ord.Address,dateagent:ord.DateAgent,datesolve:ord.DateSolve,roomnum:ord.roomnum
+      //   })
+        
+      // }
     
       getValueCallBack = (value) => {
         console.log(value)
@@ -33,10 +55,10 @@ export class Order extends Component {
       // componentDidUpdate (){
       //   this.refreshList();
       // }
-      deleteEmp(idroom){
+      deleteEmp(id){
         if(window.confirm('are u sure?'))
         {
-          fetch('/defroom/'+idroom,{
+          fetch('/deforder/'+id,{
             method:'DELETE',
             headers:{
               'Accept':'application/json',
@@ -48,55 +70,106 @@ export class Order extends Component {
           }).catch(e =>console.log(e))
         }
       }
+
     showRoom =()=>{
-      const { idroom, typeroom,roomnum,price,note}=this.state;
+      const { id,name,roomnum,dateagent,datesolve,typeclient,cmnd,address,days,price,total}=this.state;
+    
+      
+
       let editModalClose=()=>this.setState({editModalShow:false});
-      if (this.state.emps !== null){
-        return this.state.emps.map((emp,key)=>{
-          return(<tr key={emp.Idroom}>
-            <td>{emp.Idroom}</td>
-            <td>{emp.type}</td>
-            <td>{emp.roomnum}</td>
-            <td>{emp.price}</td>
-            <td>{emp.note}</td>
+      let solveModalClose=()=>this.setState({showSolveOrder:false});
+      if (this.state.orders !== null){
+        return this.state.orders.map((ord,key)=>{
+          return(<tr key={ord.ID}>
+            <td>{ord.ID}</td>
+            <td>{ord.roomnum}</td>
+            <td>{ord.DateAgent}</td>      
+            <td>{ord.Name}</td>               
+            <td>{ord.TypeClient}</td>
+            <td>{ord.CMND}</td>
+            <td>{ord.Address}</td>
+            <td>{ord.DateSolve}</td>
+            
+          
             <td>
             <ButtonToolbar>
             <Button
             className="mr-2" variant="info"
             onClick={()=> this.setState({editModalShow:true,
-              idroom:emp.Idroom, typeroom:emp.type,
-              roomnum:emp.roomnum,price:emp.price,note:emp.note,
+              id:ord.ID, 
+              typeclient:ord.TypeClient,             
+              cmnd:ord.CMND,
+              address:ord.Address,           
+              roomnum:ord.roomnum,
+              name:ord.Name,
+              dateagent:ord.DateAgent
+
             })}
             >
             Edit
             </Button>
+
+            <Button 
+            className="mr-2" variant="info"
+            onClick={()=> this.setState({showSolveOrder:true,
+              id:ord.ID, 
+              typeclient:ord.TypeClient, 
+              datesolve:ord.DateSolve,
+              name:ord.Name,
+              cmnd:ord.CMND,
+              address:ord.Address,
+              dateagent:ord.DateAgent,
+              roomnum:ord.roomnum,
+              days:ord.Days,
+              price:ord.Price,
+              total:ord.Total
+            })}
+            >
+            Thanh toán
+            </Button>
           
             <Button className="mr-2"
-            onClick={()=> this.deleteEmp(emp.Idroom)}
+            onClick={()=> this.deleteEmp(ord.ID)}
             variant="danger"
             >Delete
             </Button>
           
-            <EditEmpModal
+            <EditOrderModal
+            // orders={ord}
             show={this.state.editModalShow}
             onHide={editModalClose}
-            idroom={idroom}
-            typeroom={typeroom}
+            id={id}
+            dateagent={dateagent}
+            cmnd={cmnd}
+            typeclient={typeclient}
             roomnum={roomnum}
-            price={price}
-            note={note}
+            name={name}
+            address={address}
+            callback={this.getValueCallBack}
             />
-          
+           <SolveOrderModal
+           orders={ord}
+            show={this.state.showSolveOrder}
+            onHide={solveModalClose}
+            id={id}
+            dateagent={dateagent}
+            cmnd={cmnd}
+            datesolve={datesolve}
+            typeclient={typeclient}
+            roomnum={roomnum}
+            name={name}
+            address={address}
+            days={days}
+            price={price}
+            total={total}
+            callback={this.getValueCallBack}
+            />
             </ButtonToolbar>
             </td>
             </tr>)
         })
-      }
-      
+      }     
     }
-    
-    
-    
       render() {
       
         let addModalClose=()=>this.setState({addModalShow:false});
@@ -113,6 +186,7 @@ export class Order extends Component {
           <th>Loại Khách</th>
           <th>CMND</th>
           <th>Địa Chỉ</th>
+          <th>Ngày Trả</th>        
           <th>Option</th>
     
       </tr>
@@ -130,6 +204,7 @@ export class Order extends Component {
         >Add Order</Button>
     
       <AddOrderModal show={this.state.addModalShow}
+      refreshList={this.refreshList}
       callback={this.getValueCallBack}
       onHide={addModalClose}/>
     </ButtonToolbar>
